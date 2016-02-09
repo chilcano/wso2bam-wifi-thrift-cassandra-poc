@@ -1,4 +1,4 @@
-# PoC - Capturing WIFI traffic in Real Time using WSO2 BAM, Kismet, Apache Thrift and Apache Cassandra
+# PoC - Capturing WIFI traffic in Real Time using WSO2 BAM, Kismet, Thrift and Cassandra
 
 This repository contains:
 

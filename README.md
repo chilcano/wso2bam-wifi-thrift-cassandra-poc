@@ -56,3 +56,19 @@ _Visualizing Captured Kismet Traffic in Realtime from WSO2 BAM Dashboard_
 ![Visualizing Captured Kismet Traffic in Realtime](https://github.com/chilcano/wso2bam-wifi-thrift-cassandra-poc/blob/master/chilcano-wso2bam-wifi-thrift-cassandra-4-kismet.png "Visualizing Captured Kismet Traffic in Realtime")
 
 
+__5) Working with the Docker MAC Address Manufacturer Lookup__
+
+If you want to get the MAC Address Manufacturer for each MAC address captured automatically, you could use the Docker MAC Address Manufacturer Lookup (now `Docker MAC Manuf`) prepared to do that.
+Just download and run the [`Docker MAC Manuf`](https://hub.docker.com/r/chilcano/docker-mac-manuf) and start your WSO2 BAM with `kismet_wifi_realtime_traffic.tbox` previously deployed and voilà!.
+
+The `kismet_wifi_realtime_traffic.tbox` is prepared to call to `Docker MAC Manuf` to get the MAC Address Manufacturer.
+The configuration by defaul is:
+
+* MAC Manuf lookup REST Service - URL: https://192.168.99.100:5443
+* MAC Manuf lookup REST Service - Context: chilcano/api
+* MAC Manuf lookup REST Service - Resource: manuf/{macAddress}
+
+At the end, when WSO2 BAM and `Docker MAC Manuf` are running, you will see the next:
+![Visualizing Captured WIFI Traffic in Realtime and MAC Address Manufacturer](https://github.com/chilcano/wso2bam-wifi-thrift-cassandra-poc/blob/master/chilcano-wso2bam-wifi-thrift-cassandra-5-kismet-toolbox-docker-manuf "Visualizing Captured WIFI Traffic in Realtime and MAC Address Manufacturer")
+
+

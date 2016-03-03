@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <executionPlan name="rpi_kismet_plan" statistics="disable"
   trace="disable" xmlns="http://wso2.org/carbon/eventprocessor">
-  <description>Kismet Exec Plan for WSO2Con London 2015</description>
+  <description>Kismet WIFI traffic capture Exec Plan</description>
   <siddhiConfiguration>
     <property name="siddhi.persistence.snapshot.time.interval.minutes">0</property>
     <property name="siddhi.enable.distributed.processing">false</property>

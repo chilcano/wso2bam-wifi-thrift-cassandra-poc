@@ -17,12 +17,6 @@
     <link href="../resources/css/bootstrap.css" rel="stylesheet">
     <link href="../resources/css/bootstrap-theme.css" rel="stylesheet">
     <link href="../resources/css/bootstrap-missing.css" rel="stylesheet">
-    <style>
-        body {
-            padding-top: 50px;
-            padding-bottom: 20px;
-        }
-    </style>
     <link rel="stylesheet" href="../resources/css/main.css">
     <link rel="stylesheet" href="../resources/font-awesome/css/font-awesome.min.css">
     <script src="../resources/js/vendor/jquery-1.10.1.min.js"></script>
@@ -33,20 +27,36 @@
     <script type="text/javascript" src="jquery.flot.axislabels.js"></script>
 
     <style type="text/css">
+    body {
+        padding-top: 50px;
+        padding-bottom: 20px;
+    }    
     #flotcontainer {
         width: 800px;
         height: 400px;
         text-align: center;
         margin: 0 auto;
     }
+    table {
+        border-collapse: collapse;
+    }
+    table table th, table table td {
+        padding: 4px;
+        text-align: left;
+        border-bottom: 1px solid #DDD;
+    }
+    table table tr:hover td { background-color: #FFDDDD }
     </style>
 
     <%
-    var apiHost = '127.0.0.1';      // IP Address of the MAC Lookup Service
-    var apiPort = '8181';           // Port of the MAC Lookup Service 
+    var apiHost = '192.168.99.100'; // IP Address of the MAC Lookup Service
+    var apiPort = '5443';           // HTTPS port of the MAC Lookup Service
+    var apiContext = 'chilcano/api/manuf';
     var process = require('process');
-    var localHost = process.getProperty('carbon.local.ip');
-    var httpsPort = process.getProperty('mgt.transport.https.port');
+    //var localHost = process.getProperty('carbon.local.ip'); // IP assigned for Docker is 172.17.0.2/16
+    var localHost = '192.168.99.100';
+    //var httpsPort = process.getProperty('mgt.transport.https.port');
+    var httpsPort = '9445'
     var req_username = request.getParameter("username");
     var req_password = request.getParameter("password");
     if (req_username != null) {
@@ -65,6 +75,13 @@
     var dataset;
     var totalPoints = 50;
     var updateInterval = 5000;   // it was 250 millisecs
+
+    function trimMacAddress(_mac_) {
+        var trimmed_str = _mac_;
+        trimmed_str = trimmed_str.replace(/:/g, "");
+        trimmed_str = trimmed_str.replace(/-/g, "");
+        return trimmed_str;
+    }
 
     function initData() {
         var now = new Date().getTime() - (updateInterval * totalPoints);
@@ -160,7 +177,9 @@
         $.plot($("#flotcontainer"), dataset, options);
 
         $.ajaxSetup({
-            headers: { 'Authorization':'Basic ' + btoa('<%=session_username%>:<%=session_password%>') }
+            headers: { 
+                'Authorization' : 'Basic ' + btoa('<%=session_username%>:<%=session_password%>')
+            }
         });
 
 
@@ -176,7 +195,7 @@
                     $.plot($("#flotcontainer"), dataset, options)
 
                     // ============= ini - tables in RT ==================
-                    var currentMacManuf = "CA:FE:CA:FE:CA:FE";
+
                     $.get("https://<%=localHost%>:<%=httpsPort%>/message_store?type=RT_KISMET_FULLLIST", function(inputKLAP, status) {
                         if (inputKLAP === "_NODATA_") { return; }                 
                         if (inputKLAP === "_AUTH_FAILURE_") {
@@ -186,9 +205,35 @@
                             var inObjKLAP = JSON.parse(inputKLAP);
                             var dataKLAP = inObjKLAP.payload;
 
-                            // ============== table with BSSIDs
+                            // -------------- begin - get manufacturer for MAC and BSSID ----------
+                            var urlGetManufByMAC = "https://<%=apiHost%>:<%=apiPort%>/<%=apiContext%>/" + dataKLAP.macAddress;
+                            var myManufByMAC = $.ajax({
+                                type: "GET",
+                                url: urlGetManufByMAC,
+                                dataType: "json",
+                                global: false,
+                                async: false,
+                                success: function(jsonDataManuf) {
+                                    return jsonDataManuf.manuf;
+                                }
+                            }).responseText;
+                            var urlGetManufByBSSID = "https://<%=apiHost%>:<%=apiPort%>/<%=apiContext%>/" + dataKLAP.meta_bssid;
+                            var myManufByBSSID = $.ajax({
+                                type: "GET",
+                                url: urlGetManufByBSSID,
+                                dataType: "json",
+                                global: false,
+                                async: false,
+                                success: function(jsonDataManuf) {
+                                    return jsonDataManuf.manuf;
+                                }
+                            }).responseText;                            
+                            // --------------------------------------------------------------------
+
+
+                            // ------------------- begin - table with BSSIDs -------------------
                             $("#table_kismet_list_bssid tr").each( function() {
-                                var td_bssid = $(this).find("td:first").text();
+                                var td_bssid = $(this).find("td:first").text().replace(/ /g,"").replace(/\s+/g, "");
                                 if ( td_bssid == dataKLAP.meta_bssid ) {
                                     $(this).fadeOut(1000, function() {
                                         $(this).remove();
@@ -196,44 +241,40 @@
                                 }
                             });
                             var trbssid = $("<tr/>");
-                            trbssid.hide();
-                            trbssid.append("<td>" + dataKLAP.meta_bssid + "</td>");
-                            trbssid.append("<td>Unknown</td>");
+                            trbssid.attr('id', 'id_' + dataKLAP.meta_bssid);
+                            trbssid.hide().css("background-color", "#F5F5F5");
+                            trbssid.append("<td>&nbsp;" + dataKLAP.meta_bssid + "&nbsp;</td>");
+                            trbssid.append("<td>&nbsp;<a href='" + urlGetManufByBSSID + "' target='_blank'>" + JSON.parse(myManufByBSSID).manuf + "</a>&nbsp;</td>");
                             $("#table_kismet_list_bssid").append(trbssid);
                             trbssid.fadeIn("slow");
+                            // ------------------- begin - table with BSSIDs -------------------
 
-                            // ============== table with MACs
+                            // ------------------- begin - table with MACs -------------------
                             $("#table_kismet_list_macs tr").each( function() {
-                                var td_mac = $(this).find("td:first").text();
+                                var td_mac = $(this).find("td:first").text().replace(/ /g,"").replace(/\s+/g, "");
                                 if ( td_mac == dataKLAP.macAddress ) {
                                     $(this).fadeOut(1000, function() {
                                         $(this).remove();
                                     });
-                                } 
+                                }
                             });
-                            //var trmac = $("<tr id='id_" + dataKLAP.macAddress + "'></tr>");
+
+                            var currentMacTrimmed = trimMacAddress(dataKLAP.macAddress);
                             var trmac = $("<tr/>");
-                            trmac.attr('id', 'id_' + dataKLAP.macAddress);
-                            trmac.hide();
-                            trmac.append("<td>" + dataKLAP.macAddress + "</td>");
-                            trmac.append("<td>" + dataKLAP.type + "</td>");
-                            trmac.append("<td>" + dataKLAP.channel + "</td>");
-                            trmac.append("<td>" + dataKLAP.signal_dbm + "</td>");
-                            //trmac.append("<td><div id='manuf_info' class='manuf_info'>Unknown</div></td>");
-                            trmac.append("<td>&nbsp;<a href='https://<%=apiHost%>:<%=apiPort%>/manufacturer/mac/" + dataKLAP.macAddress + "' target='_blank'>Get manufacturer&nbsp;</td>");
+                            trmac.attr("id", "id_mac_tr_" + currentMacTrimmed);
+                            trmac.hide().css("background-color", "#EFEFEF");;
+                            trmac.append("<td>&nbsp;" + dataKLAP.macAddress + "&nbsp;</td>");
+                            trmac.append("<td>&nbsp;" + dataKLAP.type + "&nbsp;</td>");
+                            trmac.append("<td>&nbsp;" + dataKLAP.channel + "&nbsp;</td>");
+                            trmac.append("<td>&nbsp;" + dataKLAP.signal_dbm + "&nbsp;</td>");
+                            trmac.append("<td>&nbsp;<a href='" + urlGetManufByMAC + "' target='_blank'>" + JSON.parse(myManufByMAC).manuf + "</a>&nbsp;</td>");
                             $("#table_kismet_list_macs").append(trmac);
                             trmac.fadeIn("slow");
+                            // ------------------- end - table with MACs ------------------- 
 
-                            currentMacManuf = dataKLAP.macAddress;
                         }
-
-
                     });
                     
-                    $.get("https://<%=apiHost%>:<%=apiPort%>/manufacturer/mac/" + currentMacManuf, function(inputMANUF, status) {
-                    //$.get("https://10.10.10.100:8243/manufacturer/mac/" + currentMacManuf, function(inputMANUF, status) {
-                        $("#id_" + currentMacManuf).text() = inputMANUF.company;
-                    });
                     // ============= fin - tables in RT ==================
 
 
@@ -299,6 +340,7 @@
             </div>
         </div>
     </div>
+
     <div class="container">
         <div class="row">
             <div class="col-lg-12">
@@ -311,15 +353,17 @@
                             <div id="flotcontainer"></div>
 
                             <table width="100%" id="table_kismet_main">
-                                <tr><td width="300">
-                                    <table border="1" width="100%" id="table_kismet_list_bssid">
-                                        <tr><th width="140">BSSID</th><th>Name</th></tr>
-                                    </table>
-                                </td><td>&nbsp;</td><td>
-                                    <table border="1" width="100%" id="table_kismet_list_macs">
-                                        <tr><th width="140">MAC address</th><th>Type</th><th>Channel</th><th>Signal dbm</th><th>Manufacturer</th></tr>
-                                    </table>
-                                 </td></tr>
+                                <tr style="vertical-align:top">
+                                    <td width="300">
+                                        <table width="100%" id="table_kismet_list_bssid">
+                                            <tr><th width="140">BSSID</th><th>Name</th></tr>
+                                        </table>
+                                    </td><td>&nbsp;</td><td>
+                                        <table width="100%" id="table_kismet_list_macs">
+                                            <tr><th width="140">MAC address</th><th>Type</th><th>Channel</th><th>Signal dbm</th><th>Manufacturer</th></tr>
+                                        </table>
+                                    </td>
+                                </tr>
                             </table>
 
                         </div>

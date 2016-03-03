@@ -61,7 +61,7 @@
 
                         <ul class="breadcrumb pull-left">
                             <li><a href="../../../carbon">Go to Carbon Console</a> <span class="divider"></span></li>
-                            <li class="active">Kismet WIFI Realtime Traffic Monitoring Toolbox </li>
+                            <li class="active">Kismet WIFI Realtime Traffic Monitoring Toolbox</li>
                         </ul>
                         <!--form class="form-search pull-right margin-remover header-form">
                             <input type="text" class="input-medium search-query" placeholder="Activity ID">

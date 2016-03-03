@@ -69,6 +69,6 @@ The configuration by defaul is:
 * MAC Manuf lookup REST Service - Resource: manuf/{macAddress}
 
 At the end, when WSO2 BAM and `Docker MAC Manuf` are running, you will see the next:
-![Visualizing Captured WIFI Traffic in Realtime and MAC Address Manufacturer](https://github.com/chilcano/wso2bam-wifi-thrift-cassandra-poc/blob/master/chilcano-wso2bam-wifi-thrift-cassandra-5-kismet-toolbox-docker-manuf "Visualizing Captured WIFI Traffic in Realtime and MAC Address Manufacturer")
+![Visualizing Captured WIFI Traffic in Realtime and MAC Address Manufacturer](https://github.com/chilcano/wso2bam-wifi-thrift-cassandra-poc/blob/master/chilcano-wso2bam-wifi-thrift-cassandra-5-kismet-toolbox-docker-manuf.png "Visualizing Captured WIFI Traffic in Realtime and MAC Address Manufacturer")
 
 

@@ -1,29 +1,30 @@
 #!/bin/bash
-echo "Starting gpsd and Kismet, Logging to Desktop/kismet"
 
-# adding and setting mon0 in monitor mode
-sudo iw phy phy0 interface add mon0 type monitor
-sudo iw dev wlan0 del
+echo " *** Starting GPSd, Kismet and sending 802.11 captured traffic to WSO2 BAM *** "
 
-# setting mon0 is in monitor mode
-sudo ifconfig mon0 down
-sudo iwconfig mon0 mode monitor
-sudo ifconfig mon0 up
+RPI2BAM_POC_HOME="/home/pi/_kismet2das"
+RPI2BAM_POC_LOGS="/home/pi/_kismetlogs"
+
+# setting NIC in monitor mode
+sudo ifconfig wlan0 down
+sudo iwconfig wlan0 mode monitor
+sudo ifconfig wlan0 up
 
 # enabling GPS
-#sudo killall gpsd
-#sudo gpsd /dev/ttyUSB0 -F /var/run/gpsd.sock
-#sudo service gpsd restart
-#sleep 3
+sudo killall gpsd
+sudo gpsd /dev/ttyUSB0 -F /var/run/gpsd.sock
+sleep 3
 
 # refreshing the Time server
 sudo service ntp restart
 sleep 3
 
 # starting Kismet server in background
-kismet_server -p /home/pi/kismet_logs -c mon0 --daemonize
+sudo killall kismet_server
+mkdir -p $RPI2BAM_POC_LOGS
+kismet_server -p $RPI2BAM_POC_LOGS -c wlan0 --daemonize
 
 # running the Python Thrift Client
-#sleep 5
-#cd /home/pi/kismet_to_wso2bam
-#python sendTrafficFromKismetToWSO2BAM.py
+sleep 5
+cd $RPI2BAM_POC_HOME/python-thrift-cli/
+python sendTrafficFromKismetToWSO2BAM.py

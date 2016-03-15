@@ -10,6 +10,8 @@ Requires:
 - Python Thrift Client (https://github.com/chilcano/iot-server-appliances/tree/master/Arduino%20Robot/PC_Clients/PythonRobotController/DirectPublishClient/BAMPythonPublisher)
 - Python Kismet Client (https://github.com/chilcano/kismetclient)
 - Place the 'sendTrafficFromKismetToWSO2BAM.py' in same level of 'BAMPythonPublisher' and 'kismetclient' folders.
+- In the WSO2BAM side run the next: 
+  $ ssh docker@$(docker-machine ip default) -N -L 192.168.1.43:7713:localhost:7713    // user/pwd: docker/tcuser
  
 Run:
 $ python sendTrafficFromKismetToWSO2BAM.py
